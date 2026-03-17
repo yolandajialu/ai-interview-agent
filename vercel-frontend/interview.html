@@ -104,7 +104,7 @@
             sendBtn.textContent = '发送中...';
 
             try {
-                const response = await fetch('/api/interview/chat', {
+            const response = await fetch(window.API_BASE_URL + '/api/interview/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -139,7 +139,7 @@
 
         async function saveInterview(result) {
             try {
-                await fetch('/api/interview/save', {
+                await fetch(window.API_BASE_URL + '/api/interview/save', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
