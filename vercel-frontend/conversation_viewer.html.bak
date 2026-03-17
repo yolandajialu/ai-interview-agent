@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对话记录查看器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .button-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .interview-selector {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .interview-selector h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .interview-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .interview-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .interview-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .interview-item.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .interview-item h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .interview-item p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .chat-container {
+            display: none;
+        }
+
+        .chat-container.active {
+            display: block;
+        }
+
+        .chat-header {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .chat-header h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .chat-info {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .chat-info span {
+            background: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+        }
+
+        .messages {
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .message.assistant .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            order: 2;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .message.assistant .message-bubble {
+            background: #f0f4ff;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+            order: 1;
+        }
+
+        .message-content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .message-meta {
+            font-size: 0.75em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .message.user .message-meta {
+            color: white;
+            text-align: right;
+        }
+
+        .phase-indicator {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #856404;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        .export-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .export-section h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-box h4 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-box p {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .highlight {
+            background: yellow;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: #e0e0e0;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .system-message {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            font-size: 0.9em;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 对话记录查看器</h1>
+            <p>查看完整的访谈对话过程</p>
+            <div class="button-group">
+                <button onclick="loadInterviews()">🔄 刷新列表</button>
+                <button onclick="window.location.href='/'">🏠 返回首页</button>
+                <button onclick="window.location.href='/database_viewer.html'">🗄️ 数据库查看</button>
+                <button onclick="window.location.href='/result_v2.html'">📊 查看结果</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="interviewList" class="interview-selector">
+                <h3>选择要查看的访谈</h3>
+                <div class="interview-list">
+                    <div class="loading">⏳ 正在加载访谈列表...</div>
+                </div>
+            </div>
+
+            <div id="chatContainer" class="chat-container">
+                <div class="chat-header">
+                    <h2 id="chatTitle">访谈对话</h2>
+                    <div class="chat-info" id="chatInfo"></div>
+                </div>
+
+                <div class="stats" id="chatStats"></div>
+
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="🔍 搜索对话内容..."
+                        oninput="filterMessages()"
+                    >
+                </div>
+
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterByRole('all', this)">全部</button>
+                    <button class="filter-btn" onclick="filterByRole('user', this)">用户</button>
+                    <button class="filter-btn" onclick="filterByRole('assistant', this)">AI助手</button>
+                    <button class="filter-btn" onclick="filterByRole('system', this)">系统消息</button>
+                </div>
+
+                <div class="messages" id="messagesContainer"></div>
+
+                <div class="export-section">
+                    <h3>📥 导出选项</h3>
+                    <button onclick="exportConversation('json')">导出为JSON</button>
+                    <button onclick="exportConversation('txt')">导出为TXT文本</button>
+                    <button onclick="exportConversation('html')">导出为HTML</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentInterview = null;
+        let currentMessages = [];
+        let currentFilter = 'all';
+
+        async function loadInterviews() {
+            const container = document.querySelector('.interview-list');
+
+            try {
+                const response = await fetch('/api/interview/list');
+                const data = await response.json();
+
+                if (data.success && data.interviews.length > 0) {
+                    displayInterviewList(data.interviews);
+                } else {
+                    container.innerHTML = '<div class="empty">📭 暂无访谈记录</div>';
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ 加载失败: ${error.message}</div>`;
+            }
+        }
+
+        function displayInterviewList(interviews) {
+            const container = document.querySelector('.interview-list');
+
+            let html = '';
+            interviews.forEach(interview => {
+                html += `
+                    <div class="interview-item" onclick="loadConversation('${interview.session_id}')">
+                        <h4>👤 ${interview.user_role} - ${interview.industry}</h4>
+                        <p><strong>主题：</strong>${interview.task_focus}</p>
+                        <p><strong>阶段：</strong>${interview.sales_stage} | <strong>时间：</strong>${formatDate(interview.created_at)}</p>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function loadConversation(sessionId) {
+            currentInterview = sessionId;
+
+            // 显示聊天容器
+            document.getElementById('interviewList').style.display = 'none';
+            document.getElementById('chatContainer').classList.add('active');
+
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '<div class="loading">⏳ 正在加载对话记录...</div>';
+
+            try {
+                const response = await fetch(`/api/interview/${sessionId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    // 从数据库获取完整对话
+                    const conversation = await fetchConversationFromDB(sessionId);
+                    displayChat(conversation, data.interview_info);
+                } else {
+                    messagesContainer.innerHTML = `<div class="error">❌ 加载失败: ${data.error}</div>`;
+                }
+            } catch (error) {
+                messagesContainer.innerHTML = `<div class="error">❌ 错误: ${error.message}</div>`;
+            }
+        }
+
+        async function fetchConversationFromDB(sessionId) {
+            // 需要创建一个新的API端点来获取完整对话
+            const response = await fetch(`/api/interview/${sessionId}/conversation`);
+            const data = await response.json();
+
+            if (data.success) {
+                return data.conversation;
+            } else {
+                // 如果API不可用，尝试从会话文件获取
+                return await fetchConversationFromSession(sessionId);
+            }
+        }
+
+        async function fetchConversationFromSession(sessionId) {
+            const response = await fetch(`/api/interview/${sessionId}`);
+            const data = await response.json();
+
+            if (data.success && data.conversation) {
+                return JSON.parse(data.conversation);
+            }
+
+            return [];
+        }
+
+        function displayChat(messages, info) {
+            currentMessages = messages;
+
+            // 显示访谈信息
+            if (info) {
+                document.getElementById('chatTitle').textContent = `${info.user_role} - ${info.industry}`;
+                document.getElementById('chatInfo').innerHTML = `
+                    <span>🎯 ${info.sales_stage}</span>
+                    <span>📊 ${info.experience_years}年经验</span>
+                    <span>🕒 ${formatDate(info.created_at)}</span>
+                `;
+            }
+
+            // 显示统计信息
+            const userMessages = messages.filter(m => m.role === 'user').length;
+            const assistantMessages = messages.filter(m => m.role === 'assistant').length;
+            const totalMessages = messages.length;
+
+            document.getElementById('chatStats').innerHTML = `
+                <div class="stat-box">
+                    <h4>${totalMessages}</h4>
+                    <p>总消息数</p>
+                </div>
+                <div class="stat-box">
+                    <h4>${userMessages}</h4>
+                    <p>用户消息</p>
+                </div>
+                <div class="stat-box">
+                    <h4>${assistantMessages}</h4>
+                    <p>AI回复</p>
+                </div>
+            `;
+
+            // 显示消息
+            renderMessages(messages);
+        }
+
+        function renderMessages(messages) {
+            const container = document.getElementById('messagesContainer');
+            let html = '';
+            let lastPhase = 0;
+
+            messages.forEach((msg, index) => {
+                // 跳过系统消息（可选）
+                if (msg.role === 'system') return;
+
+                // 检测阶段变化
+                if (msg.role === 'assistant') {
+                    try {
+                        const phaseMatch = msg.content.match(/"?\s*phase\s*"\s*:\s*(\d+)/i);
+                        if (phaseMatch) {
+                            const currentPhase = parseInt(phaseMatch[1]);
+                            if (currentPhase > lastPhase && currentPhase <= 9) {
+                                html += `<div class="phase-indicator">📍 进入第 ${currentPhase} 阶段</div>`;
+                                lastPhase = currentPhase;
+                            }
+                        }
+                    } catch (e) {
+                        // 忽略解析错误
+                    }
+                }
+
+                html += `
+                    <div class="message ${msg.role}" data-role="${msg.role}" data-index="${index}">
+                        ${msg.role === 'assistant' ? '<div class="message-avatar">🤖</div>' : ''}
+                        <div class="message-bubble">
+                            <div class="message-content">${formatMessage(msg.content)}</div>
+                            <div class="message-meta">消息 #${index + 1}</div>
+                        </div>
+                        ${msg.role === 'user' ? '<div class="message-avatar">👤</div>' : ''}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function formatMessage(content) {
+            // 尝试解析JSON格式的回复
+            try {
+                const parsed = JSON.parse(content);
+                if (parsed.question) {
+                    return parsed.question;
+                }
+                if (parsed.phase && parsed.is_complete) {
+                    return '✅ 访谈完成！';
+                }
+            } catch (e) {
+                // 不是JSON，返回原文
+            }
+
+            // 转义HTML
+            return content
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>');
+        }
+
+        function filterMessages() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const container = document.getElementById('messagesContainer');
+
+            if (!searchText && currentFilter === 'all') {
+                renderMessages(currentMessages);
+                return;
+            }
+
+            const filtered = currentMessages.filter(msg => {
+                const matchesRole = currentFilter === 'all' || msg.role === currentFilter;
+                const matchesSearch = !searchText || msg.content.toLowerCase().includes(searchText);
+                return matchesRole && matchesSearch;
+            });
+
+            renderMessages(filtered);
+        }
+
+        function filterByRole(role, button) {
+            currentFilter = role;
+
+            // 更新按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            filterMessages();
+        }
+
+        function exportConversation(format) {
+            if (!currentMessages || currentMessages.length === 0) {
+                alert('没有可导出的对话记录');
+                return;
+            }
+
+            let content, filename, type;
+
+            switch (format) {
+                case 'json':
+                    content = JSON.stringify(currentMessages, null, 2);
+                    filename = `conversation_${currentInterview}.json`;
+                    type = 'application/json';
+                    break;
+
+                case 'txt':
+                    content = currentMessages.map(msg => {
+                        const role = msg.role === 'user' ? '用户' : 'AI助手';
+                        return `[${role}]\n${msg.content}\n`;
+                    }).join('\n---\n\n');
+                    filename = `conversation_${currentInterview}.txt`;
+                    type = 'text/plain';
+                    break;
+
+                case 'html':
+                    content = generateHTMLExport();
+                    filename = `conversation_${currentInterview}.html`;
+                    type = 'text/html';
+                    break;
+            }
+
+            downloadFile(content, filename, type);
+        }
+
+        function generateHTMLExport() {
+            return `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>访谈对话记录 - ${currentInterview}</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .message { margin: 20px 0; padding: 15px; border-radius: 10px; }
+        .user { background: #e3f2fd; text-align: right; }
+        .assistant { background: #f5f5f5; }
+        .role { font-weight: bold; color: #667eea; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <h1>访谈对话记录</h1>
+    <p><strong>Session ID:</strong> ${currentInterview}</p>
+    <p><strong>导出时间:</strong> ${new Date().toLocaleString()}</p>
+    <hr>
+    ${currentMessages.map(msg => `
+        <div class="message ${msg.role}">
+            <div class="role">${msg.role === 'user' ? '👤 用户' : '🤖 AI助手'}</div>
+            <div>${msg.content.replace(/\n/g, '<br>')}</div>
+        </div>
+    `).join('')}
+</body>
+</html>
+            `;
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${month}-${day} ${hours}:${minutes}`;
+        }
+
+        function goBack() {
+            document.getElementById('chatContainer').classList.remove('active');
+            document.getElementById('interviewList').style.display = 'block';
+        }
+
+        // 页面加载时自动加载访谈列表
+        document.addEventListener('DOMContentLoaded', loadInterviews);
+    </script>
+</body>
+</html>

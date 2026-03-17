@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>恢复访谈结果</title>
+    <script src="api-config.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        .info {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 恢复访谈结果</h1>
+
+        <div class="info">
+            <p><strong>Session ID:</strong> 20260317134309-BD</p>
+            <p><strong>状态:</strong> <span id="status">准备恢复...</span></p>
+        </div>
+
+        <button onclick="restoreResult()">恢复访谈结果</button>
+        <button onclick="viewResult()">查看结果页面</button>
+
+        <div id="output"></div>
+    </div>
+
+    <script>
+        async function restoreResult() {
+            const status = document.getElementById('status');
+            const output = document.getElementById('output');
+
+            status.textContent = '正在恢复...';
+
+            try {
+                const response = await fetch('/api/interview/20260317134309-BD');
+                const data = await response.json();
+
+                if (data.success) {
+                    localStorage.setItem('interview_result', JSON.stringify(data.result));
+
+                    status.textContent = '✅ 恢复成功！';
+                    status.className = 'success';
+
+                    output.innerHTML = `
+                        <div class="info">
+                            <p class="success">✅ 访谈结果已恢复到浏览器存储</p>
+                            <p>包含内容：</p>
+                            <ul>
+                                <li>工作流程图：${data.result.workflow_map?.length || 0} 个阶段</li>
+                                <li>最佳实践：${data.result.best_practices?.length || 0} 条</li>
+                                <li>方法论：${data.result.methodologies?.length || 0} 套</li>
+                                <li>常见模式：${Object.keys(data.result.common_patterns || {}).length} 类</li>
+                            </ul>
+                            <p><strong>下一步：</strong>点击"查看结果页面"按钮查看完整内容</p>
+                        </div>
+                    `;
+                } else {
+                    status.textContent = '❌ 恢复失败';
+                    status.className = 'error';
+                    output.innerHTML = `<p class="error">错误: ${data.error}</p>`;
+                }
+            } catch (error) {
+                status.textContent = '❌ 发生错误';
+                status.className = 'error';
+                output.innerHTML = `<p class="error">错误: ${error.message}</p>`;
+            }
+        }
+
+        function viewResult() {
+            window.location.href = '/result.html';
+        }
+
+        // 页面加载时检查localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('interview_result');
+            if (saved) {
+                document.getElementById('status').textContent = '✅ 已有数据';
+                document.getElementById('status').className = 'success';
+            }
+        });
+    </script>
+</body>
+</html>

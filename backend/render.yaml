@@ -1,0 +1,26 @@
+# AI访谈系统 - Render部署配置
+
+version: 1
+env: python
+build_command: pip install -r requirements.txt
+start_command: python3 app.py
+
+# 环境变量
+env_vars:
+  - key: PORT
+    value: 8000
+  - key: PYTHON_VERSION
+    value: 3.12
+
+# 健康检查
+healthcheck_path: /
+
+# 实例类型
+instance_type: free
+instance_count: 1
+
+# 自动部署
+auto_deploy: true
+
+# 日志
+log_type: stdout

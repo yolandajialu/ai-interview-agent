@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI销售经验访谈系统</title>
+    <script src="api-config.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI销售经验访谈系统</h1>
+            <p class="subtitle">将您的隐性经验转化为结构化资产</p>
+        </div>
+
+        <div class="form-card">
+            <h2>开始您的访谈</h2>
+            <form id="userForm">
+                <div class="form-group">
+                    <label for="role">👤 您的角色：</label>
+                    <select id="role" name="role" required>
+                        <option value="">请选择...</option>
+                        <option value="AE">AE（客户经理）</option>
+                        <option value="SDR">SDR（销售代表）</option>
+                        <option value="BD">BD（商务拓展）</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="experience_years">📊 从业年限：</label>
+                    <input type="number" id="experience_years" name="experience_years" min="0" max="30" required placeholder="例如：3">
+                </div>
+
+                <div class="form-group">
+                    <label for="industry">🏢 所在行业：</label>
+                    <input type="text" id="industry" name="industry" required placeholder="例如：SaaS、医疗、制造">
+                </div>
+
+                <div class="form-group">
+                    <label for="sales_stage">🎯 访谈场景：</label>
+                    <select id="sales_stage" name="sales_stage" required>
+                        <option value="">请选择...</option>
+                        <option value="售前">售前</option>
+                        <option value="售中">售中</option>
+                        <option value="售后">售后</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="task_focus">💬 访谈聚焦：</label>
+                    <input type="text" id="task_focus" name="task_focus" required placeholder="例如：首次客户拜访、需求挖掘">
+                </div>
+
+                <button type="submit" class="btn-primary">开始访谈 ✨</button>
+            </form>
+        </div>
+
+        <div class="info-box">
+            <h3>💡 什么是AI访谈？</h3>
+            <p>AI会像一位经验丰富的OD专家，通过9个阶段的深度对话，帮助您梳理工作中的关键经验和方法论，并将这些隐性知识转化为结构化的文档。</p>
+            <h3>⏱️ 预计时间</h3>
+            <p>完成一次访谈大约需要15-30分钟</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

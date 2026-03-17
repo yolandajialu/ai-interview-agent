@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI访谈中</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="interview-container">
+        <div class="interview-header">
+            <h1>🎯 AI访谈进行中</h1>
+            <div class="phase-indicator">
+                当前阶段：<span id="currentPhase">1</span> / 9
+            </div>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="message ai-message">
+                <div class="avatar">🤖</div>
+                <div class="message-content">
+                    <div class="typing-indicator" id="typingIndicator">
+                        正在思考...
+                    </div>
+                    <div class="text" id="aiMessage"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <textarea id="userAnswer" placeholder="请输入您的回答..." rows="4"></textarea>
+            <div class="button-group">
+                <button id="sendBtn" class="btn-send">发送回答</button>
+                <button id="completeBtn" class="btn-complete" style="display: none;">查看结果</button>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress" id="progressBar"></div>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = '';
+        let currentPhase = 1;
+
+        function getSessionId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('session_id') || localStorage.getItem('interview_session_id');
+        }
+
+        function updateProgress(phase) {
+            const progress = ((phase - 1) / 9) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            document.getElementById('currentPhase').textContent = phase;
+        }
+
+        function addMessage(content, isUser) {
+            const container = document.getElementById('chatContainer');
+
+            const firstMessage = document.getElementById('aiMessage');
+            const existingIndicator = document.getElementById('typingIndicator');
+
+            if (!isUser) {
+                if (firstMessage && firstMessage.textContent && existingIndicator) {
+                    existingIndicator.style.display = 'none';
+                }
+            } else {
+                if (existingIndicator) {
+                    existingIndicator.style.display = 'none';
+                }
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+
+            const avatar = isUser ? '👤' : '🤖';
+            messageDiv.innerHTML = `
+                <div class="avatar">${avatar}</div>
+                <div class="message-content">
+                    <div class="text">${content}</div>
+                </div>
+            `;
+
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendAnswer() {
+            const answerInput = document.getElementById('userAnswer');
+            const answer = answerInput.value.trim();
+
+            if (!answer) {
+                alert('请输入您的回答');
+                return;
+            }
+
+            addMessage(answer, true);
+            answerInput.value = '';
+
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.disabled = true;
+            sendBtn.textContent = '发送中...';
+
+            try {
+                const response = await fetch('/api/interview/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        answer: answer
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentPhase = result.phase;
+                    updateProgress(currentPhase);
+
+                    if (result.is_complete) {
+                        localStorage.setItem('interview_result', JSON.stringify(result.result));
+                        await saveInterview(result.result);
+
+                        document.getElementById('sendBtn').style.display = 'none';
+                        document.getElementById('completeBtn').style.display = 'block';
+                    } else {
+                        addMessage(result.question, false);
+                    }
+                }
+            } catch (error) {
+                alert('发送失败：' + error.message);
+            }
+
+            sendBtn.disabled = false;
+            sendBtn.textContent = '发送回答';
+        }
+
+        async function saveInterview(result) {
+            try {
+                await fetch('/api/interview/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        result: result
+                    })
+                });
+            } catch (error) {
+                console.error('保存失败', error);
+            }
+        }
+
+        document.getElementById('sendBtn').addEventListener('click', sendAnswer);
+
+        document.getElementById('userAnswer').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendAnswer();
+            }
+        });
+
+        document.getElementById('completeBtn').addEventListener('click', () => {
+            window.location.href = '/result.html';
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            sessionId = getSessionId();
+            if (!sessionId) {
+                alert('未找到会话ID，请重新开始');
+                window.location.href = '/';
+                return;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const question = params.get('question');
+
+            if (question) {
+                const typingIndicator = document.getElementById('typingIndicator');
+                const aiMessage = document.getElementById('aiMessage');
+
+                typingIndicator.style.display = 'none';
+                aiMessage.textContent = decodeURIComponent(question);
+                updateProgress(1);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>访谈结果 - 完整版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .button-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section h2 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .section h3 {
+            color: #555;
+            font-size: 1.3em;
+            margin: 20px 0 10px 0;
+        }
+
+        .workflow-stage {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .workflow-stage h4 {
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .key-actions {
+            margin-top: 10px;
+        }
+
+        .key-actions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .key-actions li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .key-actions li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .practice-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .practice-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .practice-card h4 {
+            color: #667eea;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .methodology {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .methodology h4 {
+            color: #333;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .methodology ol {
+            margin-left: 20px;
+        }
+
+        .methodology li {
+            margin-bottom: 8px;
+            line-height: 1.6;
+        }
+
+        .pattern-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        .signals {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .signal-card {
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .signal-card.positive {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+
+        .signal-card.negative {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px;
+        }
+
+        .success-box {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .time-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 访谈结果报告</h1>
+            <p class="subtitle">AI销售经验提取与分析</p>
+            <div class="button-group">
+                <button onclick="exportJSON()">📥 导出JSON</button>
+                <button onclick="window.location.href='/'">🏠 返回首页</button>
+                <button onclick="window.location.href='/restore.html'">🔄 恢复页面</button>
+            </div>
+        </div>
+
+        <div class="content" id="resultContent">
+            <div class="loading">⏳ 正在加载访谈结果...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadResult() {
+            const content = document.getElementById('resultContent');
+
+            try {
+                // 先尝试从localStorage读取
+                let result = localStorage.getItem('interview_result');
+
+                if (!result) {
+                    // 如果localStorage没有，从API获取
+                    const response = await fetch('/api/interview/20260317134309-BD');
+                    const data = await response.json();
+
+                    if (data.success) {
+                        result = JSON.stringify(data.result);
+                        // 保存到localStorage
+                        localStorage.setItem('interview_result', result);
+                    } else {
+                        content.innerHTML = '<div class="error">❌ 未找到访谈结果，请先完成访谈</div>';
+                        return;
+                    }
+                }
+
+                const data = JSON.parse(result);
+                displayResult(data);
+
+            } catch (error) {
+                content.innerHTML = `<div class="error">❌ 加载失败: ${error.message}</div>`;
+                console.error('Error loading result:', error);
+            }
+        }
+
+        function displayResult(data) {
+            const content = document.getElementById('resultContent');
+            let html = '';
+
+            // 工作流程图
+            if (data.workflow_map && data.workflow_map.length > 0) {
+                html += '<div class="section">';
+                html += '<h2>🗺️ 工作流程图</h2>';
+                html += '<div class="success-box">您的完整销售流程分为以下阶段，每个阶段都有明确的行动指南：</div>';
+
+                data.workflow_map.forEach(stage => {
+                    html += '<div class="workflow-stage">';
+                    html += `<h4>${stage.stage} <span class="time-badge">${stage.time_allocation || ''}</span></h4>`;
+                    html += '<div class="key-actions">';
+                    html += '<strong>关键动作：</strong>';
+                    html += '<ul>';
+                    if (Array.isArray(stage.key_actions)) {
+                        stage.key_actions.forEach(action => {
+                            html += `<li>${action}</li>`;
+                        });
+                    }
+                    html += '</ul>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            // 最佳实践
+            if (data.best_practices && data.best_practices.length > 0) {
+                html += '<div class="section">';
+                html += '<h2>⭐ 最佳实践</h2>';
+                html += '<div class="success-box">经过验证的核心实践，可直接应用于实际工作中：</div>';
+
+                data.best_practices.forEach(practice => {
+                    html += '<div class="practice-card">';
+                    html += `<h4>📌 ${practice.practice || practice.practice_name || '最佳实践'}</h4>`;
+                    if (practice.description) {
+                        html += `<p><strong>说明：</strong>${practice.description}</p>`;
+                    }
+                    if (practice.implementation) {
+                        html += `<p><strong>实施方法：</strong>${practice.implementation}</p>`;
+                    }
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            // 方法论
+            if (data.methodologies && data.methodologies.length > 0) {
+                html += '<div class="section">';
+                html += '<h2>📚 核心方法论</h2>';
+                html += '<div class="success-box">系统化的方法论框架，可复制推广：</div>';
+
+                data.methodologies.forEach(method => {
+                    html += '<div class="methodology">';
+                    html += `<h4>🔬 ${method.name || method.methodology_name}</h4>`;
+                    if (method.key_success_factors) {
+                        html += `<p><strong>关键成功要素：</strong>${method.key_success_factors}</p>`;
+                    }
+                    if (method.steps && Array.isArray(method.steps)) {
+                        html += '<p><strong>实施步骤：</strong></p>';
+                        html += '<ol>';
+                        method.steps.forEach(step => {
+                            html += `<li>${step}</li>`;
+                        });
+                        html += '</ol>';
+                    }
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            // 常见模式
+            if (data.common_patterns) {
+                html += '<div class="section">';
+                html += '<h2>🔍 常见模式识别</h2>';
+
+                const patterns = data.common_patterns;
+
+                // 客户反应信号
+                if (patterns.client_reactions) {
+                    html += '<h3>💬 客户反应信号</h3>';
+                    html += '<div class="signals">';
+
+                    if (patterns.client_reactions.positive_signals) {
+                        html += '<div class="signal-card positive">';
+                        html += '<h4>✅ 积极信号</h4>';
+                        html += '<ul>';
+                        patterns.client_reactions.positive_signals.forEach(signal => {
+                            html += `<li>${signal}</li>`;
+                        });
+                        html += '</ul></div>';
+                    }
+
+                    if (patterns.client_reactions.negative_signals) {
+                        html += '<div class="signal-card negative">';
+                        html += '<h4>❌ 消极信号</h4>';
+                        html += '<ul>';
+                        patterns.client_reactions.negative_signals.forEach(signal => {
+                            html += `<li>${signal}</li>`;
+                        });
+                        html += '</ul></div>';
+                    }
+
+                    html += '</div>';
+                }
+
+                // 对话流程
+                if (patterns.conversation_flow) {
+                    html += '<h3>📋 对话流程</h3>';
+                    html += '<div class="pattern-box">';
+                    const flow = patterns.conversation_flow;
+                    Object.keys(flow).forEach(key => {
+                        const label = {
+                            'opening': '开场',
+                            'connection': '建立连接',
+                            'exploration': '探索需求',
+                            'value_display': '展示价值',
+                            'closing': '结束'
+                        }[key] || key;
+                        html += `<p><strong>${label}：</strong>${flow[key]}</p>`;
+                    });
+                    html += '</div>';
+                }
+
+                // 挑战与解决方案
+                if (patterns.challenges_and_solutions) {
+                    html += '<h3>⚠️ 挑战与解决方案</h3>';
+                    html += '<div class="pattern-box">';
+                    const cs = patterns.challenges_and_solutions;
+                    html += `<p><strong>挑战：</strong>${cs.challenge}</p>`;
+                    html += `<p><strong>解决方案：</strong>${cs.solution}</p>`;
+                    if (cs.limitation) {
+                        html += `<p><strong>注意事项：</strong>${cs.limitation}</p>`;
+                    }
+                    html += '</div>';
+                }
+
+                html += '</div>';
+            }
+
+            content.innerHTML = html;
+        }
+
+        function exportJSON() {
+            const result = localStorage.getItem('interview_result');
+            if (!result) {
+                alert('未找到访谈结果');
+                return;
+            }
+
+            const blob = new Blob([result], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'interview_result_20260317134309-BD.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 页面加载时自动加载结果
+        document.addEventListener('DOMContentLoaded', loadResult);
+    </script>
+</body>
+</html>
