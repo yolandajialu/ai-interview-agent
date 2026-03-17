@@ -3,6 +3,7 @@ AI访谈Agent - Flask主程序
 """
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import sqlite3
 import json
 from datetime import datetime
@@ -11,6 +12,7 @@ import os
 import pickle
 
 app = Flask(__name__)
+CORS(app)  # 允许所有域名跨域访问
 
 
 def save_session(session_id, data):
