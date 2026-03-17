@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>访谈结果</title>
     <link rel="stylesheet" href="style.css">
+    <script src="api-config.js"></script>
 </head>
 <body>
     <div class="result-container">
@@ -22,17 +23,39 @@
     </div>
 
     <script>
-        function loadResult() {
-            const result = localStorage.getItem('interview_result');
+        async function loadResult() {
+    // 先尝试从localStorage读取
+    let result = localStorage.getItem('interview_result');
 
-            if (!result) {
-                document.getElementById('resultContent').innerHTML = '<div class="error">未找到访谈结果</div>';
-                return;
+    if (!result) {
+        // 如果localStorage没有，从URL获取session_id并调用API
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+
+        if (sessionId) {
+            try {
+                document.getElementById('resultContent').innerHTML = '<div class="loading">正在从服务器获取结果...</div>';
+                const response = await fetch(window.API_BASE_URL + '/api/interview/' + sessionId);
+                const data = await response.json();
+
+                if (data.success && data.result) {
+                    result = JSON.stringify(data.result);
+                    localStorage.setItem('interview_result', result);
+                    displayResult(data.result);
+                    return;
+                }
+            } catch (error) {
+                console.error('获取结果失败:', error);
             }
-
-            const data = JSON.parse(result);
-            displayResult(data);
         }
+
+        document.getElementById('resultContent').innerHTML = '<div class="error">未找到访谈结果</div>';
+        return;
+    }
+
+    const data = JSON.parse(result);
+    displayResult(data);
+}
 
         function displayResult(data) {
             let html = '';
