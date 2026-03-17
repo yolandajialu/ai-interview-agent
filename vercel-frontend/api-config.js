@@ -9,7 +9,7 @@
     // API基础URL配置
     const API_BASE_URL = isLocalhost
         ? 'http://127.0.0.1:8000'  // 本地开发环境
-        : '';  // Render生产环境（待部署后替换为实际地址）
+        : 'https://ai-interview-agentai-interview.onrender.com';  // Render生产环境
 
     // 将API配置挂载到window对象，方便其他脚本使用
     window.API_BASE_URL = API_BASE_URL;
