@@ -2,7 +2,7 @@
 AI访谈Agent - Flask主程序
 """
 
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify
 import sqlite3
 import json
 from datetime import datetime
@@ -10,7 +10,7 @@ from interview_agent import InterviewAgent, conversation_history
 import os
 import pickle
 
-app = Flask(__name__, template_folder='../frontend', static_folder='../frontend')
+app = Flask(__name__)
 
 
 def save_session(session_id, data):
@@ -32,13 +32,6 @@ def load_session(session_id):
             return pickle.load(f)
     except:
         return None
-
-
-@app.route('/<path:filename>')
-def serve_static(filename):
-    """提供静态文件"""
-    static_dir = os.path.join(os.path.dirname(__file__), '../frontend')
-    return send_from_directory(static_dir, filename)
 
 
 def init_database():
@@ -71,20 +64,12 @@ init_database()
 
 @app.route('/')
 def index():
-    """首页"""
-    return render_template('index.html')
-
-
-@app.route('/interview.html')
-def interview_page():
-    """访谈页面"""
-    return render_template('interview.html')
-
-
-@app.route('/result.html')
-def result_page():
-    """结果页面"""
-    return render_template('result.html')
+    """健康检查"""
+    return jsonify({
+        "status": "ok",
+        "service": "AI Interview API",
+        "version": "1.0"
+    })
 
 
 @app.route('/api/interview/start', methods=['POST'])
