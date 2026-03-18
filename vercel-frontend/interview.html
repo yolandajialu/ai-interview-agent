@@ -162,8 +162,9 @@
         });
 
         document.getElementById('completeBtn').addEventListener('click', () => {
-            window.location.href = '/result.html';
-        });
+    window.location.href = `/result.html?session_id=${sessionId}`;
+    });
+
 
         document.addEventListener('DOMContentLoaded', () => {
             sessionId = getSessionId();
