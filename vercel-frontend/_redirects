@@ -1,3 +1,10 @@
 # Cloudflare Pages redirects configuration
-# Serve all routes from index.html for SPA-like behavior
-/* /index.html 200
+# Only redirect specific routes, not actual files
+
+# Redirect interview routes (for SPA behavior)
+/interview /index.html 200
+/restore /index.html 200
+/conversation-viewer /index.html 200
+/database-viewer /index.html 200
+
+# Keep all other routes as-is (including result pages)
