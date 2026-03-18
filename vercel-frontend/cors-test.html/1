@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS测试</title>
+    <script>
+        const API_BASE_URL = 'https://ai-interview-agentai-interview.onrender.com';
+        const TEST_SESSION_ID = '20260317134309-BD';
+
+        async function testConnection() {
+            console.log('开始测试...');
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '测试中...';
+
+            try {
+                console.log('API URL:', API_BASE_URL);
+                console.log('当前Origin:', window.location.origin);
+
+                const healthRes = await fetch(API_BASE_URL + '/');
+                const healthData = await healthRes.json();
+                console.log('✅ 健康检查通过:', healthData);
+
+                const interviewRes = await fetch(API_BASE_URL + '/api/interview/' + TEST_SESSION_ID);
+                const interviewData = await interviewRes.json();
+                console.log('✅ 获取访谈成功:', interviewData);
+
+                if (interviewData.success) {
+                    resultDiv.innerHTML = `
+                        <h2 style="color: green;">✅ 所有测试通过！</h2>
+                        <p><strong>后端状态:</strong> ${healthData.status}</p>
+                        <p><strong>工作阶段:</strong> ${interviewData.result.workflow_map.length} 个</p>
+                        <p><strong>最佳实践:</strong> ${interviewData.result.best_practices.length} 个</p>
+                        <p><strong>CORS配置:</strong> ✅ 正常工作</p>
+                        <hr>
+                        <p style="color: #666;">这意味着您的AI访谈系统完全可用！</p>
+                        <a href="/" style="display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin-top: 10px;">开始使用</a>
+                    `;
+                } else {
+                    throw new Error('获取数据失败');
+                }
+            } catch (error) {
+                console.error('❌ 错误:', error);
+                resultDiv.innerHTML = `
+                    <h2 style="color: red;">❌ 测试失败</h2>
+                    <p><strong>错误:</strong> ${error.message}</p>
+                    <p>请打开浏览器控制台（F12）查看详细信息</p>
+                `;
+            }
+        }
+
+        window.addEventListener('load', () => {
+            console.log('='.repeat(50));
+            console.log('CORS测试页面已加载');
+            console.log('从已部署网站访问，不是本地文件');
+            console.log('='.repeat(50));
+        });
+    </script>
+</head>
+<body style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+    <h1>🔍 CORS测试</h1>
+    <button onclick="testConnection()" style="padding: 15px 30px; font-size: 16px; cursor: pointer;">开始测试</button>
+    <div id="result" style="margin-top: 20px;"></div>
+</body>
+</html>
