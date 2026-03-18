@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>访谈结果</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // API配置 - 内联版本
+        const API_BASE_URL = 'https://ai-interview-agentai-interview.onrender.com';
+    </script>
+</head>
+<body>
+    <div class="result-container">
+        <div class="result-header">
+            <h1>📊 访谈结果</h1>
+            <div class="button-group">
+                <button onclick="exportJSON()" class="btn-secondary">导出JSON</button>
+                <button onclick="goHome()" class="btn-secondary">返回首页</button>
+            </div>
+        </div>
+
+        <div id="resultContent">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadResult() {
+            // 先尝试从localStorage读取
+            let result = localStorage.getItem('interview_result');
+
+            if (!result) {
+                // 如果localStorage没有，从URL获取session_id并调用API
+                const urlParams = new URLSearchParams(window.location.search);
+                const sessionId = urlParams.get('session_id');
+
+                if (sessionId) {
+                    try {
+                        document.getElementById('resultContent').innerHTML = '<div class="loading">正在从服务器获取结果...</div>';
+                        const response = await fetch(API_BASE_URL + '/api/interview/' + sessionId);
+                        const data = await response.json();
+
+                        if (data.success && data.result) {
+                            result = JSON.stringify(data.result);
+                            localStorage.setItem('interview_result', result);
+                            displayResult(data.result);
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('获取结果失败:', error);
+                    }
+                }
+
+                document.getElementById('resultContent').innerHTML = '<div class="error">未找到访谈结果</div>';
+                return;
+            }
+
+            const data = JSON.parse(result);
+            displayResult(data);
+        }
+
+        function displayResult(data) {
+            let html = '';
+
+            if (data.workflow_map && data.workflow_map.length > 0) {
+                html += '<div class="result-section">';
+                html += '<h2>🗺️ 工作流程图</h2>';
+                html += '<div class="workflow">';
+                data.workflow_map.forEach(stage => {
+                    html += `<div class="stage"><h3>${stage.stage}</h3>`;
+                    stage.tasks.forEach(task => {
+                        html += `<div class="task"><h4>📋 ${task.task}</h4>`;
+                        task.subtasks.forEach(subtask => {
+                            html += `<div class="subtask">
+                                <p><strong>📍 动作：</strong>${subtask.action}</p>
+                                ${subtask.thinking ? `<p><strong>💭 思考：</strong>${subtask.thinking.join(', ')}</p>` : ''}
+                                ${subtask.decision_logic ? `<p><strong>🎯 决策逻辑：</strong>${subtask.decision_logic.join(', ')}</p>` : ''}
+                                ${subtask.challenges ? `<p><strong>⚠️ 难点：</strong>${subtask.challenges.join(', ')}</p>` : ''}
+                                ${subtask.solutions ? `<p><strong>✅ 解决方案：</strong>${subtask.solutions.join(', ')}</p>` : ''}
+                            </div>`;
+                        });
+                        html += '</div>';
+                    });
+                    html += '</div></div>';
+                });
+                html += '</div></div>';
+            }
+
+            if (data.best_practices && data.best_practices.length > 0) {
+                html += '<div class="result-section">';
+                html += '<h2>⭐ 最佳实践</h2>';
+                html += '<ul class="practices">';
+                data.best_practices.forEach(practice => {
+                    html += `<li>${practice}</li>`;
+                });
+                html += '</ul></div>';
+            }
+
+            if (data.methodologies && data.methodologies.length > 0) {
+                html += '<div class="result-section">';
+                html += '<h2>📚 方法论</h2>';
+                html += '<ul class="methodologies">';
+                data.methodologies.forEach(method => {
+                    html += `<li>${method}</li>`;
+                });
+                html += '</ul></div>';
+            }
+
+            if (data.common_patterns) {
+                html += '<div class="result-section">';
+                html += '<h2>🔍 常见模式</h2>';
+                if (data.common_patterns.high_frequency_challenges) {
+                    html += '<h3>高频难点</h3>';
+                    html += '<ul class="patterns">';
+                    data.common_patterns.high_frequency_challenges.forEach(challenge => {
+                        html += `<li>${challenge}</li>`;
+                    });
+                    html += '</ul>';
+                }
+                if (data.common_patterns.top_performers_patterns) {
+                    html += '<h3>优秀销售特征</h3>';
+                    html += '<ul class="patterns">';
+                    data.common_patterns.top_performers_patterns.forEach(pattern => {
+                        html += `<li>${pattern}</li>`;
+                    });
+                    html += '</ul>';
+                }
+                html += '</div>';
+            }
+
+            document.getElementById('resultContent').innerHTML = html;
+        }
+
+        function exportJSON() {
+            const result = localStorage.getItem('interview_result');
+            if (!result) {
+                alert('未找到访谈结果');
+                return;
+            }
+            const blob = new Blob([result], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'interview_result.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadResult);
+    </script>
+</body>
+</html>
