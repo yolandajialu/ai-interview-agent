@@ -98,17 +98,107 @@
                 const response = await fetch('https://ai-interview-agentai-interview.onrender.com/api/interview/' + sessionId);
                 const data = await response.json();
 
-                if (data.success && data.result) {
-                    const r = data.result;
-                    resultStatus.innerHTML = '<span style="color: green;">✅ 加载成功！</span>';
-                    resultContent.textContent =
-                        '工作流程: ' + r.workflow_map.length + ' 个阶段\n' +
-                        '最佳实践: ' + r.best_practices.length + ' 条\n' +
-                        '方法论: ' + r.methodologies.length + ' 个\n\n' +
-                        '完整数据:\n' + JSON.stringify(data, null, 2);
-                } else {
-                    throw new Error('未找到该访谈结果');
-                }
+                                   if (data.success && data.result) {
+                        const r = data.result;
+                        resultStatus.innerHTML = '<span style="color: green;">✅ 加载成功！</span>';
+
+                        // 构建格式化的HTML显示
+                        let html = '<div style="font-family: Arial, sans-serif;">';
+
+                        // Session信息
+                        html += '<div style="background: #f0f7ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">';
+                        html += '<h3 style="margin: 0 0 10px 0; color: #1976d2;">📋 访谈信息</h3>';
+                        html += '<p style="margin: 5px 0;"><strong>Session ID:</strong> ' + sessionId + '</p>';
+                        if (r.role) html += '<p style="margin: 5px 0;"><strong>角色:</strong> ' + r.role + '</p>';
+                        if (r.industry) html += '<p style="margin: 5px 0;"><strong>行业:</strong> ' + r.industry + '</p>';
+                        if (r.sales_stage) html += '<p style="margin: 5px 0;"><strong>场景:</strong> ' + r.sales_stage + '</p>';
+                        html += '</div>';
+
+                        // 工作流程
+                        if (r.workflow_map && r.workflow_map.length > 0) {
+                            html += '<div style="margin-bottom: 20px;">';
+                            html += '<h3 style="color: #2e7d32; border-bottom: 2px solid #2e7d32; padding-bottom: 8px;">🔄 工作流程 (' + r.workflow_map.length + ' 个阶段)</h3>';
+                            r.workflow_map.forEach((stage, index) => {
+                                html += '<div style="background: #f9f9f9; padding: 12px; margin: 10px 0; border-left: 4px solid #4caf50; border-radius: 4px;">';
+                                html += '<h4 style="margin: 0 0 8px 0; color: #2e7d32;">阶段 ' + (index + 1) + ': ' + (stage.stage || stage.name || '未命名') + '</h4>';
+                                if (stage.description) {
+                                    html += '<p style="margin: 5px 0; color: #555;">' + stage.description + '</p>';
+                                }
+                                if (stage.actions && stage.actions.length > 0) {
+                                    html += '<ul style="margin: 8px 0; padding-left: 20px;">';
+                                    stage.actions.forEach(action => {
+                                        html += '<li style="margin: 3px 0;">' + action + '</li>';
+                                    });
+                                    html += '</ul>';
+                                }
+                                html += '</div>';
+                            });
+                            html += '</div>';
+                        }
+
+                        // 最佳实践
+                        if (r.best_practices && r.best_practices.length > 0) {
+                            html += '<div style="margin-bottom: 20px;">';
+                            html += '<h3 style="color: #f57c00; border-bottom: 2px solid #f57c00; padding-bottom: 8px;">⭐ 最佳实践 (' + r.best_practices.length + ' 条)</h3>';
+                            r.best_practices.forEach((practice, index) => {
+                                html += '<div style="background: #fff8e1; padding: 12px; margin: 10px 0; border-radius: 4px;">';
+                                html += '<h4 style="margin: 0 0 8px 0; color: #f57c00;">实践 ' + (index + 1) + '</h4>';
+                                if (typeof practice === 'string') {
+                                    html += '<p style="margin: 5px 0;">' + practice + '</p>';
+                                } else if (practice.title) {
+                                    html += '<p style="margin: 5px 0; font-weight: bold;">' + practice.title + '</p>';
+                                    if (practice.description) {
+                                        html += '<p style="margin: 5px 0; color: #666;">' + practice.description + '</p>';
+                                    }
+                                }
+                                html += '</div>';
+                            });
+                            html += '</div>';
+                        }
+
+                        // 方法论
+                        if (r.methodologies && r.methodologies.length > 0) {
+                            html += '<div style="margin-bottom: 20px;">';
+                            html += '<h3 style="color: #7b1fa2; border-bottom: 2px solid #7b1fa2; padding-bottom: 8px;">📚 方法论 (' + r.methodologies.length + ' 个)</h3>';
+                            r.methodologies.forEach((method, index) => {
+                                html += '<div style="background: #f3e5f5; padding: 12px; margin: 10px 0; border-radius: 4px;">';
+                                html += '<h4 style="margin: 0 0 8px 0; color: #7b1fa2;">' + (method.name || method.title || '方法论 ' + (index + 1)) + '</h4>';
+                                if (method.description) {
+                                    html += '<p style="margin: 5px 0;">' + method.description + '</p>';
+                                }
+                                if (method.steps && method.steps.length > 0) {
+                                    html += '<ol style="margin: 8px 0; padding-left: 20px;">';
+                                    method.steps.forEach(step => {
+                                        html += '<li style="margin: 3px 0;">' + step + '</li>';
+                                    });
+                                    html += '</ol>';
+                                }
+                                html += '</div>';
+                            });
+                            html += '</div>';
+                        }
+
+                        // 常见模式
+                        if (r.common_patterns && r.common_patterns.length > 0) {
+                            html += '<div style="margin-bottom: 20px;">';
+                            html += '<h3 style="color: #d32f2f; border-bottom: 2px solid #d32f2f; padding-bottom: 8px;">🔍 常见模式 (' + r.common_patterns.length + ' 个)</h3>';
+                            r.common_patterns.forEach((pattern, index) => {
+                                html += '<div style="background: #ffebee; padding: 12px; margin: 10px 0; border-radius: 4px;">';
+                                html += '<h4 style="margin: 0 0 8px 0; color: #d32f2f;">' + (pattern.name || pattern.title || '模式 ' + (index + 1)) + '</h4>';
+                                if (pattern.description) {
+                                    html += '<p style="margin: 5px 0;">' + pattern.description + '</p>';
+                                }
+                                html += '</div>';
+                            });
+                            html += '</div>';
+                        }
+
+                        html += '</div>';
+                        resultContent.innerHTML = html;
+                    } else {
+                        throw new Error('未找到该访谈结果');
+                    }
+
             } catch (error) {
                 resultStatus.innerHTML = '<span style="color: red;">❌ 加载失败: ' + error.message + '</span>';
                 console.error('详细错误:', error);
