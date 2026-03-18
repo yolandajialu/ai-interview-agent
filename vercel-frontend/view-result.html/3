@@ -1,0 +1,55 @@
+✅ 创建了简化版查看器
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>查看访谈结果</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; }
+        h1 { color: #333; }
+        #result { margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 5px; white-space: pre-wrap; }
+        .loading { color: #666; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 访谈结果查看器</h1>
+        <p>Session ID: <span id="sessionId"></span></p>
+        <div id="status" class="loading">正在加载...</div>
+        <div id="result"></div>
+        <p><a href="/">← 返回首页</a></p>
+    </div>
+
+    <script>
+        const API = 'https://ai-interview-agentai-interview.onrender.com';
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get('session_id') || '20260317134309-BD';
+
+        document.getElementById('sessionId').textContent = sessionId;
+
+        fetch(API + '/api/interview/' + sessionId)
+            .then(r => r.json())
+            .then(d => {
+                if(d.success && d.result) {
+                    document.getElementById('status').innerHTML = '<span class="success">✅ 加载成功！</span>';
+                    document.getElementById('status').className = 'success';
+                    const r = d.result;
+                    document.getElementById('result').textContent = 
+                        '工作阶段: ' + r.workflow_map.length + ' 个\n' +
+                        '最佳实践: ' + r.best_practices.length + ' 条\n' +
+                        '方法论: ' + r.methodologies.length + ' 个\n\n' +
+                        '完整数据:\n' + JSON.stringify(d, null, 2);
+                } else {
+                    throw new Error('未找到结果');
+                }
+            })
+            .catch(e => {
+                document.getElementById('status').innerHTML = '<span class="error">❌ 加载失败: ' + e.message + '</span>';
+                console.error(e);
+            });
+    </script>
+</body>
+</html>
