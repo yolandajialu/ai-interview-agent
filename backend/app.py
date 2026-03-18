@@ -14,7 +14,6 @@ import pickle
 app = Flask(__name__)
 CORS(app)  # 允许所有域名跨域访问
 
-
 def save_session(session_id, data):
     """保存会话数据"""
     # 获取当前文件的目录
