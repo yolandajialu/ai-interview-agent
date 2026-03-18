@@ -62,7 +62,64 @@
             <h3>⏱️ 预计时间</h3>
             <p>完成一次访谈大约需要15-30分钟</p>
         </div>
+
+        <div class="form-card" style="margin-top: 30px;">
+            <h2>📊 查看已有访谈结果</h2>
+            <p>输入Session ID查看已完成的访谈结果：</p>
+            <div class="form-group">
+                <input type="text" id="view_session_id" placeholder="例如：20260317134309-BD" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            </div>
+            <button type="button" class="btn-primary" onclick="viewResult()">查看结果</button>
+            <div id="resultArea" style="display:none; margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 5px;">
+                <div id="resultStatus"></div>
+                <pre id="resultContent" style="white-space: pre-wrap; font-size: 12px; max-height: 400px; overflow-y: auto;"></pre>
+            </div>
+        </div>
     </div>
+
+    <script>
+        async function viewResult() {
+            const sessionId = document.getElementById('view_session_id').value.trim();
+            const resultArea = document.getElementById('resultArea');
+            const resultStatus = document.getElementById('resultStatus');
+            const resultContent = document.getElementById('resultContent');
+
+            if (!sessionId) {
+                alert('请输入Session ID');
+                return;
+            }
+
+            resultArea.style.display = 'block';
+            resultStatus.innerHTML = '正在加载...';
+            resultStatus.className = 'loading';
+            resultContent.textContent = '';
+
+            try {
+                const response = await fetch('https://ai-interview-agentai-interview.onrender.com/api/interview/' + sessionId);
+                const data = await response.json();
+
+                if (data.success && data.result) {
+                    const r = data.result;
+                    resultStatus.innerHTML = '<span style="color: green;">✅ 加载成功！</span>';
+                    resultContent.textContent =
+                        '工作流程: ' + r.workflow_map.length + ' 个阶段\n' +
+                        '最佳实践: ' + r.best_practices.length + ' 条\n' +
+                        '方法论: ' + r.methodologies.length + ' 个\n\n' +
+                        '完整数据:\n' + JSON.stringify(data, null, 2);
+                } else {
+                    throw new Error('未找到该访谈结果');
+                }
+            } catch (error) {
+                resultStatus.innerHTML = '<span style="color: red;">❌ 加载失败: ' + error.message + '</span>';
+                console.error('详细错误:', error);
+            }
+        }
+
+        // 添加样式
+        const style = document.createElement('style');
+        style.textContent = '.loading { color: #666; }';
+        document.head.appendChild(style);
+    </script>
 
     <script src="script.js"></script>
 </body>
